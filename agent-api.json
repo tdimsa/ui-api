@@ -1,0 +1,3412 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "NANO REST AGENT API",
+    "description" : "# Documentation\nThis documentation provides detailed information about accessible endpoints, endpoints request and response structure and error codes. For more information about authentication, error handling and suggested processes, please visit our [Rest services](https://wiki.bas.lt/display/NM/Rest+services) at our [Wiki](https://wiki.bas.lt/display/NM/NANO+knowledge+base).\n\n# Breaking vs Non-breaking changes\nAll web service changes are categorized into either breaking changes or non-breaking changes. We make every effort to implement changes as non-breaking, and do not generally notify clients about non-breaking changes. However, there are situations that may require breaking changes, for such cases release notes for will contain necessary information. Bellow is a non-exhaustive list of what we consider breaking and what a non-breaking change.\n\n## Breaking changes\n* Removal of API or functionality\n* Removal of property from the request (even if they are considered optional)\n* Addition of new mandatory property to the request\n* Addition of new mandatory query parameter\n* Change of the URI of the API, such as host name, port or path\n* Change of request or response property name\n* Change of property data type\n* Change of the structure in request or response (e.g. making an existing property a child of some other property)\n* Change of request validation logic, making it more restrictive\n* Change of HTTP code in response (e.g. 201 -> 204 or 400 -> 404 or 200 -> 404 or 404->204 and similar)\n* Change of error code in the response (e.g. IncorrectParameter -> InvalidParameter)\n* Change of already supported enumerated values or meaning of those values\n* Change of default behaviour when calling without newly added query parameters\n* Making of a previously optional properties in request mandatory\n* Making of headers in request mandatory\n\n## Non-breaking changes\n* Removal or loosening of constraint for input property validated via server-side business logic\n* Addition of new functionality or new API\n* Addition of new Method (e.g. PUT, PATCH if previously was not available)\n* Addition of new optional request property or nested property to existing API methods\n* Addition of new properties to existing API responses\n* Addition of new optional header parameters\n* Addition of new optional query parameters\n* Addition of new event types\n* Addition of new error messages and error details while keeping old error code\n* Change of error response message and details while keeping old error code\n* Change of the order of properties in existing API responses\n* Change of the length or format of object IDs or other opaque strings\n* Change of mandatory fields to optional fields in an existing API\n* Reducing or extending of enumeration range (when parameters for range control are not used)\n* Change of rate limiting rules\n\n\n<div style=\"color: #004085;border-radius: .25rem;background-color: #cce5ff;border-color: #b8daff;position: relative;padding: .75rem 1.25rem;margin-bottom: 1rem;\">\n    <p>Be a tolerant reader and also define default behaviour for unexpected cases.\n    <br><br>Articles worth reading:\n    <ul><li>Martin Fowler - https://martinfowler.com/bliki/TolerantReader.html</li></url>\n    </p>\n</div>\n",
+    "contact" : {
+      "name" : "UAB \"BALTIC AMBER SOLUTIONS\"",
+      "url" : "https://bas.lt/",
+      "email" : "info@bas.lt"
+    }
+  },
+  "servers" : [ {
+    "url" : "/agent-api"
+  } ],
+  "paths" : {
+    "/accounts/open/current" : {
+      "post" : {
+        "tags" : [ "Accounts" ],
+        "summary" : "Open IBAN account",
+        "description" : "Open account for customer for specified current account product. If applicant or holder party IDs are absent then initial party ID is used.\n\nPreconditions of account opening for customer are set in current account product's settings. If the preconditions are not met, service will return an error describing the missing requirements.\n\nSystem checks if specified GL account is assigned to the product that is specified in the request. Related checks are made to ensure that private person would not have corporate account and vice versa.\n\nCurrent account subtype <code>Segregated account</code> can be set in product settings.\n\n**Note:** parameters related to statement delivery are not working and are marked as deprecated, please avoid using them.\n",
+        "operationId" : "openCurrentAccount",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/OpenCurrentAccountRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "description" : "Account open response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccountOpenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/accounts/parties/{accountPartyId}/balance" : {
+      "get" : {
+        "tags" : [ "Accounts" ],
+        "summary" : "Get party accounts balances",
+        "description" : "- blocks - PLAIS blocks or account blocks that can be added in Nano Front.\n- debts - Customer debts. For example it can be for account servicing when the customer does not have money in the account.\n- holds - Reservations (holds) for Card authorizations.\n- reservations - Reserved account amount for transactions.\n",
+        "operationId" : "partyAccountsBalances",
+        "parameters" : [ {
+          "name" : "accountPartyId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Account balances response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccountBalancesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/accounts/{accountNumber}/balance" : {
+      "get" : {
+        "tags" : [ "Accounts" ],
+        "summary" : "Get account balance",
+        "description" : "- blocks - PLAIS blocks or account blocks that can be added in Nano Front.\n- debts - Customer debts. For example it can be for account servicing when the customer does not have money in the account.\n- holds - Reservations (holds) for Card authorizations.\n- reservations - Reserved account amount for transactions.\n",
+        "operationId" : "balance",
+        "parameters" : [ {
+          "name" : "accountNumber",
+          "in" : "path",
+          "description" : "Account number",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "LT121000011101001000"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Account balance response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccountBalanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/accounts/{accountNumber}/{currency}/statement" : {
+      "get" : {
+        "tags" : [ "Accounts" ],
+        "summary" : "Get account statement",
+        "description" : "Returns account statement containing list of debit and credit operations.",
+        "operationId" : "statement",
+        "parameters" : [ {
+          "name" : "accountNumber",
+          "in" : "path",
+          "description" : "Account number",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "LT121000011101001000"
+        }, {
+          "name" : "currency",
+          "in" : "path",
+          "description" : "Currency",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "EUR"
+        }, {
+          "name" : "dateFrom",
+          "in" : "query",
+          "description" : "Date from",
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "example" : "2018-01-01"
+        }, {
+          "name" : "dateTill",
+          "in" : "query",
+          "description" : "Date until",
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "example" : "2018-09-10"
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "description" : "Record count limit",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 3000
+          },
+          "example" : "100"
+        }, {
+          "name" : "skip",
+          "in" : "query",
+          "description" : "Skip first records",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          },
+          "example" : "0"
+        }, {
+          "name" : "sortDirection",
+          "in" : "query",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ASC", "DESC" ],
+            "default" : "DESC"
+          },
+          "example" : "DESC"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccountStatementResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Get a list of cards",
+        "description" : "<code>accountPartyId</code> is mandatory\n\n<code>applicantPartyId</code> is optional\n\n<code>cardHolderPartyId</code> is optional\n\n<code>filter</code> is optional. If <code>filter</code> is not provided **all cards** with all statuses are returned.\n\nFor <b>Private person</b>:\n\n<code>accountPartyId</code>, <code>applicantPartyId</code> and <code>cardHolderPartyId</code> is the same.\n\nFor <b>Corporate</b>:\n\n<code>accountPartyId</code> ≠ <code>applicantPartyId</code>, for business customers, the <code>applicantPartyId</code> must be authorized to <code>accountPartyId</code> to return cards list.\n\nIf <code>accountPartyId</code> = <code>applicantPartyId</code> no cards returned.\n\n- accountBalance - available balance\n- blocksBalance - PLAIS blocks or account blocks balance that can be added in Nano Front.\n- debtsBalance - Customer debts balance. For example it can be for account servicing when the customer does not have money in the account.\n- holdsBalance - Reservations(holds) for Card authorizations balance.\n- reservationsBalance - Reserved account balance for transactions.\n",
+        "operationId" : "getCards",
+        "parameters" : [ {
+          "name" : "accountPartyId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "6e41b657-8197-4a8d-97bd-b9acf54afd67"
+        }, {
+          "name" : "applicantPartyId",
+          "in" : "query",
+          "description" : "Unique party identification value for service usage",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "6e41b657-8197-4a8d-97bd-b9acf54afd67"
+        }, {
+          "name" : "cardHolderPartyId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "6e41b657-8197-4a8d-97bd-b9acf54afd67"
+        }, {
+          "name" : "status",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "READY_TO_ACTIVATE", "ACTIVE", "CLOSED", "EXPIRED", "BLOCKED", "LOCKED", "SET_PIN", "REMOVED", "FAILED_IN_PC", "FRAUD" ]
+            }
+          },
+          "example" : "READY_TO_ACTIVATE"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GetCardsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/accounting/{accountNumber}/balance" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Get account balance.",
+        "description" : "Get account balance.\n<p>Service returns balance of account by provided account number.\n<br>\nAccount must exist in any agents' card product as a account, pc fee account or fee account\n<br>",
+        "operationId" : "getBalance",
+        "parameters" : [ {
+          "name" : "accountNumber",
+          "in" : "path",
+          "description" : "Account number",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : 362001003
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "  account balance retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CardAccountBalanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/new-allowed" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Returns is new card allowed for CrmParty.",
+        "description" : "Returns is new card allowed for CrmParty.\n\n<code>accountPartyId</code> is mandatory\n\n<code>cardHolderPartyId</code> is mandatory for corporate account\n\n<code>cardProductId</code> is not mandatory. If <code>cardProductId</code> is provided, service will check only exact product by cardProductId, otherwise service will check all existing card products\n\n<code>cardProductType</code> is not mandatory. If <code>cardProductType</code> provided, service will check if new card allowed for CrmParty by <code>cardProductType</code> (VIRTUAL,DEBIT).\nIf <code>cardProductType</code> and <code>cardProductId</code> parameters are provided service validates, if <code>cardProductId</code> provided with correct value\nand if <code>cardProductId</code> matches </code>cardProductType</code>, otherwise service returns error.\n\n<code>accountNumber</code> is optional. If no <code>accountNumber</code> is provided, service does not validate **current accounts**.\nIf <code>accountNumber</code> is provided, service validates if **current account** by given <code>accountNumber</code> matches requirements.\n",
+        "operationId" : "getIsNewCardAllowed",
+        "parameters" : [ {
+          "name" : "accountPartyId",
+          "in" : "query",
+          "description" : "Account party id",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "7bee1cef-91a5-4e97-a283-3f15e4c8abaf"
+        }, {
+          "name" : "cardHolderPartyId",
+          "in" : "query",
+          "description" : "Holder party id",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "7bee1cef-91a5-4e97-a283-3f15e4c8abaf"
+        }, {
+          "name" : "cardProductId",
+          "in" : "query",
+          "description" : "Card product id",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "CARD-VISA-DEBIT"
+        }, {
+          "name" : "cardProductType",
+          "in" : "query",
+          "description" : "",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "VIRTUAL", "DEBIT" ]
+          },
+          "example" : "DEBIT"
+        }, {
+          "name" : "accountNumber",
+          "in" : "query",
+          "description" : "Account number",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "LT980000120000002204"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/NewCardAllowedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/plastic" : {
+      "post" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Order plastic card.",
+        "description" : "Service orders plastic card\n\n<code>cardProductId</code> is not mandatory if <code>cardProductType</code> is provided. When <code>cardProductType</code>\nis provided, service takes <code>cardProductId</code> from mongo config, e.g. \"defaultCardProductId:debit:AGENT_ID\"\n\n<code>cardProductType</code> is not mandatory if <code>cardProductId</code> is provided.\n\n<code>cardDeliveryMethod</code> values:\n1. POST\n2. REGISTERED_POST\n3. COURIER\n\n<code>cardDeliveryType</code> values:\n1. AGENCY\n2. ADDRESS\n\n<code>cardProductType</code> values:\n1. DEBIT\n2. CREDIT\n3. INSTANT\n4. BUSINESS\n5. CORPORATE\n6. VIRTUAL\n7. CORPORATE_VIRTUAL\n8. PRE_PAID\n\nOrder plastic card validations:\n- Service checks if current account is found by provided **accountNumber**\n- Service checks if current account holder's id equals to provided **accountPartyId**\n- Service checks if current account product exists by **productId** from current account\n- Service checks if CrmParty's with **accountPartyId** cards quantity doesn't exceed maximum cards quantity of\nprovided current account\n- Service validates CrmParty's with **accountPartyId** residence country\n- Service checks if current account's status is active\n- Service checks if CrmParty with **applicantPartyId** is not suspended and not \"person non grata\"\n- Service takes **card3dsPhoneNumber** value from CrmParty's **cardHolderPartyId** mainPhoneNumber.\n- Service takes **card3dsCredentials** value from CrmParty's **cardHolderPartyId** mainPhoneNumber with credential3dsType=OTPSMS\n- Service checks if card product is found\n- Service checks if card product is active\n- Service validates CrmParty's with **accountPartyId** and CrmParty's with **applicantPartyId** profile completeness\n- Service checks if cards product type's party type equals to CrmParty's with **accountPartyId** party type\n- Service checks if **accountPartyId** equals to **applicantPartyId** when card product type's party type is PRIVATE_PERSON\n- Service checks if CrmParty's with **accountPartyId** authorized person is CrmParty with **applicantPartyId** when\ncard product type's party type is ORGANIZATION\n",
+        "operationId" : "issuePlasticCard",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IssuePlasticCardRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IssueCardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/plastic/{cardId}/activate/confirm" : {
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Confirm plastic card success activation (that occurred on GIP UI).",
+        "operationId" : "put_2",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/plastic/{cardId}/activate/init" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "",
+        "description" : "",
+        "operationId" : "get_1",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        }, {
+          "name" : "language",
+          "in" : "query",
+          "description" : "If request parameter \"language\" provided with incorrect value Iframe window will be in en-US language.\n                ",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "en-US", "es-ES", "et-EE", "fr-FR", "it-IT", "ko-KR", "lt-LT", "lv-LV", "nl-NL", "pl-PL", "pt-BR", "pt-PT", "ru-RU", "zh-CN" ]
+          },
+          "example" : "en-US"
+        }, {
+          "name" : "userIp",
+          "in" : "query",
+          "description" : "User ip address",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "170.186.61.242"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RedirectToGipResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/plastic/{cardId}/pinset/confirm" : {
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Confirm plastic card PIN success set (that occurred on GIP UI).",
+        "operationId" : "put_4",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card PC ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/plastic/{cardId}/pinset/init" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "",
+        "description" : "",
+        "operationId" : "get_2",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        }, {
+          "name" : "language",
+          "in" : "query",
+          "description" : "If request parameter \"language\" provided with incorrect value Iframe window will be in en-US language.\n                ",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "en-US", "es-ES", "et-EE", "fr-FR", "it-IT", "ko-KR", "lt-LT", "lv-LV", "nl-NL", "pl-PL", "pt-BR", "pt-PT", "ru-RU", "zh-CN" ]
+          },
+          "example" : "en-US"
+        }, {
+          "name" : "userIp",
+          "in" : "query",
+          "description" : "User ip address",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "170.186.61.242"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RedirectToGipResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/plastic/{cardId}/pinview/confirm" : {
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "",
+        "description" : "",
+        "operationId" : "put_5",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        }, {
+          "name" : "language",
+          "in" : "query",
+          "description" : "If request parameter \"language\" provided with incorrect value Iframe window will be in en-US language.\n                ",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "en-US", "es-ES", "et-EE", "fr-FR", "it-IT", "ko-KR", "lt-LT", "lv-LV", "nl-NL", "pl-PL", "pt-BR", "pt-PT", "ru-RU", "zh-CN" ]
+          },
+          "example" : "en-US"
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VerifyConfirmationRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RedirectToGipResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/plastic/{cardId}/pinview/init" : {
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Send SMS OTP to card holder for plastic card PIN view.",
+        "operationId" : "put_7",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenDetails"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/products" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Get card product list.",
+        "description" : "At least one parameter must be provided. If one or more parameters provided they must be with correct values, otherwise service will returns error message.\n\n<code>accountPartyResidenceCountries</code> - allowed countries from **CARD_ISSUING_EEA** and **CARD_ISSUING_OTHER** country groups. Allowed format ISO-3166 Alpha-2.\nExamples: (LT, LV, EE, GR...)\n\n<code>accountPartyBusinessCategory</code> field possible values are listed in (mongo -> nano-backoffice -> glossary -> <code>_id:\"business-categories\"</code>)\n",
+        "operationId" : "getProducts",
+        "parameters" : [ {
+          "name" : "accountPartyId",
+          "in" : "query",
+          "description" : "Account party id",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "7bee1cef-91a5-4e97-a283-3f15e4c8abaf"
+        }, {
+          "name" : "accountPartyType",
+          "in" : "query",
+          "description" : "Account party type",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "PRIVATE_PERSON", "SELF_EMPLOYED_PERSON", "ORGANIZATION" ]
+          }
+        }, {
+          "name" : "accountPartyResidenceCountries",
+          "in" : "query",
+          "description" : "Account party residence country / countries",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
+          "name" : "accountPartyBusinessCategory",
+          "in" : "query",
+          "description" : "Account party business category",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BUSINESS_CATEGORY"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/CardProduct"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/virtual" : {
+      "post" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Order virtual card.",
+        "description" : "Service orders virtual card\n\n<code>cardProductId</code> is not mandatory if <code>cardProductType</code> is provided. When <code>cardProductType</code>\nis provided, service takes <code>cardProductId</code> from mongo config, e.g. \"defaultCardProductId:virtual:AGENT_ID\"\n\n<code>cardProductType</code> is not mandatory if <code>cardProductId</code> is provided.\n\n<code>cardProductType</code> values:\n1. DEBIT\n2. CREDIT\n3. INSTANT\n4. BUSINESS\n5. CORPORATE\n6. VIRTUAL\n7. CORPORATE_VIRTUAL\n8. PRE_PAID\n\nOrder virtual card validations:\n- Service checks if current account is found by provided **accountNumber**\n- Service checks if current account holder's id equals to provided **accountPartyId**\n- Service checks if current account product exists by **productId** from current account\n- Service checks if CrmParty's with **accountPartyId** cards quantity doesn't exceed maximum cards quantity of\nprovided current account\n- Service validates CrmParty's with **accountPartyId** residence country\n- Service checks if current account's status is active\n- Service checks if CrmParty with **applicantPartyId** is not suspended and not \"person non grata\"\n- Service takes **card3dsPhoneNumber** value from CrmParty's **cardHolderPartyId** mainPhoneNumber.\n- Service takes **card3dsCredentials** value from CrmParty's **cardHolderPartyId** mainPhoneNumber with credential3dsType=OTPSMS\n- Service checks if card product is found\n- Service checks if card product is active\n- Service checks if card product type is VIRTUAL\n- Service validates CrmParty's with **accountPartyId** and CrmParty's with **applicantPartyId** profile completeness\n- Service checks if cards product type's party type equals to CrmParty's with **accountPartyId** party type\n- Service checks if **accountPartyId** equals to **applicantPartyId** when card product type's party type is PRIVATE_PERSON\n- Service checks if CrmParty's with **accountPartyId** authorized person is CrmParty with **applicantPartyId** when\ncard product type's party type is ORGANIZATION\n",
+        "operationId" : "issueVirtualCard",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IssueVirtualCardRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IssueCardResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{cardId}" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Get card",
+        "description" : "- accountBalance - available balance\n- blocksBalance - PLAIS blocks or account blocks balance that can be added in Nano Front.\n- debtsBalance - Customer debts balance. For example it can be for account servicing when the customer does not have money in the account.\n- holdsBalance - Reservations(holds) for Card authorizations balance.\n- reservationsBalance - Reserved account balance for transactions.\n<code>cardId</code> = card id in PC (Processing Center)\n",
+        "operationId" : "getCard",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "CARD-yme3bli"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Card"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{cardId}/3ds/password/confirm" : {
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Confirm card 3DS password success change (that occurred on GIP UI).",
+        "operationId" : "put_1",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/{cardId}/3ds/password/init" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "",
+        "description" : "",
+        "operationId" : "get",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        }, {
+          "name" : "language",
+          "in" : "query",
+          "description" : "If request parameter \"language\" provided with incorrect value Iframe window will be in en-US language.\n                ",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "en-US", "es-ES", "et-EE", "fr-FR", "it-IT", "ko-KR", "lt-LT", "lv-LV", "nl-NL", "pl-PL", "pt-BR", "pt-PT", "ru-RU", "zh-CN" ]
+          },
+          "example" : "en-US"
+        }, {
+          "name" : "userIp",
+          "in" : "query",
+          "description" : "User ip address",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "170.186.61.242"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RedirectToGipResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/{cardId}/block" : {
+      "post" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Block card",
+        "description" : "- cardId - card id in PC\n- Available <code>cardStopCause</code> values: <b>[STOPPED, LOST, STOLEN]</b>\n- Temporary block - <b>cardStopCause:STOPPED</b>\n- Permanently block - <b>cardStopCause:LOST/STOLEN</b>\n",
+        "operationId" : "blockCard",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "e5b94e56-97f3-4d1e-a9d6-505d65a64687"
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/BlockCardRequest"
+              },
+              "examples" : {
+                "Block card" : {
+                  "description" : "Block card",
+                  "value" : "{\n'cardStopCause': 'STOLEN'\n}"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MetadataExample"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{cardId}/close" : {
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Close card contract",
+        "description" : "Service closes card contract and current account if request parameter **closeCurrentAccount** = true\n\n<code>closeCurrentAccount</code> is optional and by default is **false**\n\nCard contract validations:\n- Service validates if card contract status is not **CLOSED**\n\nIf **closeCurrentAccount** = true, before closing card contract, service validates current account:\n- Service validates if current account is not used as a fee account, as a deposit service account, as a loan service account,\nas a mobile payment account\n- Service validates if current account is active\n- Service validates if current account is not blocked for debit and credit operations\n- Service validates if current account has zero balance\n- Service validates if current account doesn't have pending transfers, overdrafts, debts\n",
+        "operationId" : "put",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "e5b94e56-97f3-4d1e-a9d6-505d65a64687"
+        } ],
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CloseCardRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{cardId}/details/confirm" : {
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "",
+        "description" : "",
+        "operationId" : "put_3",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        }, {
+          "name" : "language",
+          "in" : "query",
+          "description" : "If request parameter \"language\" provided with incorrect value Iframe window will be in en-US language.\n                ",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "en-US", "es-ES", "et-EE", "fr-FR", "it-IT", "ko-KR", "lt-LT", "lv-LV", "nl-NL", "pl-PL", "pt-BR", "pt-PT", "ru-RU", "zh-CN" ]
+          },
+          "example" : "en-US"
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VerifyConfirmationRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RedirectToGipResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/{cardId}/details/init" : {
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Send SMS OTP to card holder for plastic or virtual card details view.",
+        "operationId" : "put_6",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "description" : "Card ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "BNK.CARD-jqyt5zq"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenDetails"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/cards/{cardId}/load" : {
+      "post" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Load card from prefunding account",
+        "description" : "Service loads current account linked with card\n\nLoad card service validations:\n- Service validates card contract found by **cardId** status: Card status must be ACTIVE or LOCKED or READY_TO_ACTIVATE\n- Service checks if **prefundingAccount** is provided in current account product\n- Service validates prefundingAccount:\n   - Service checks if there are enough funds in prefundingAccount\n   - Service checks if prefundingAccount is ACTIVE\n   - Service checks if prefundingAccount is not blocked for debit/all operations\n- Service validates current account linked with card found by **cardId**:\n   - Service checks if current account is ACTIVE\n   - Service checks if current account is not blocked for credit/all operations\n- Service validates if prefunding account holder party is active\n- Service validates if current account party is active\n",
+        "operationId" : "topUpCard",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "e5b94e56-97f3-4d1e-a9d6-505d65a64687"
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CardLoadRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CardLoadResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{cardId}/security-parameters" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Get card security parameters",
+        "operationId" : "getCardSecurityParameters",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "e5b94e56-97f3-4d1e-a9d6-505d65a64687"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SecurityParametersResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Change card security parameters.",
+        "description" : "**Endpoint supports following security parameters**:\n- ALLOW_CONTACTLESS\n- ALLOW_CASHOUT\n- ALLOW_ECOMMERCE\n- ALLOW_MAG_STRIPE\n\n**Allowed actions for plastic card**:\n- Contactless payments (true/false)\n- Cashless (true/false)\n- Online transactions (true/false)\n- Mag stripe (true/false)\n\n**Allowed actions for virtual card**:\n- Online transactions (true/false)\n",
+        "operationId" : "changeCardSecurityParameters",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "CARD-d2gyi6i"
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SecurityParameterRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MetadataExample"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{cardId}/security-parameters/preconditions" : {
+      "get" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Check preconditions before changing card security parameter.",
+        "description" : "Service gets all preconditions before changing security parameter\n\n- ALLOW_ECOMMERCE\n    - If card contract *created3dsPassword = false*, then need to set 3d secure password\n- ALLOW_CASHOUT\n    - Always returns *preconditions* empty\n- ALLOW_CONTACTLESS\n    - Always returns *preconditions* empty\n- ALLOW_MAG_STRIPE\n    - Always returns *preconditions* empty\n",
+        "operationId" : "getCardSecurityParametersPreconditionsAgentApiService",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "CARD-d2gyi6i"
+        }, {
+          "name" : "securityParameter",
+          "in" : "query",
+          "description" : "Security parameter",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "ALLOW_CONTACTLESS", "ALLOW_CASHOUT", "ALLOW_ECOMMERCE", "ALLOW_MAG_STRIPE" ]
+          },
+          "example" : "ALLOW_ECOMMERCE"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SecurityParameterPreconditionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{cardId}/unblock" : {
+      "post" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Unblocks card",
+        "description" : "Service unblocks card only if card status (<code>stopCause</code> - <b>STOPPED</b>).\ncardId - card id in PC\n",
+        "operationId" : "unblockCard",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "e5b94e56-97f3-4d1e-a9d6-505d65a64687"
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MetadataExample"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{cardId}/unload/confirm" : {
+      "post" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Unload card to prefunding account",
+        "description" : "Service unloads card current account to organization prefunding account\n\n<code>cardId</code> = card id in PC (Processing Center). <code>cardId</code> is mandatory path parameter.\n\n<code>password</code> is mandatory request body parameter\n\nUnload confirm card service validations:\n- Service validates card contract found by **cardId** status: Card status must be ACTIVE or LOCKED or READY_TO_ACTIVATE\n- Service gets issued two factory token\n- Service validates token with **password**\n- Service validates current account linked with card found by **cardId**:\n   - Service checks if current account is ACTIVE\n   - Service checks if current account is not blocked for credit/all operations\n- Service validates if current account party is not suspended, blocked or persona non grata.\n- Service checks if **prefundingAccount** is provided in current account product\n- Service validates prefundingAccount:\n   - Service checks if prefundingAccount is ACTIVE\n   - Service checks if prefundingAccount is not blocked for debit/all operations\n- Service validates if prefunding account holder party is not suspended, blocked or persona non grata.\n- Service checks if there are enough funds in current account\n- Service makes a payment from current account to prefunding account\n",
+        "operationId" : "post",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "e5b94e56-97f3-4d1e-a9d6-505d65a64687"
+        } ],
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CardConfirmUnloadRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CardConfirmUnloadResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{cardId}/unload/init" : {
+      "put" : {
+        "tags" : [ "Cards" ],
+        "summary" : "Send SMS OTP to card holder for card unload",
+        "description" : "Service sends SMS OTP to card holder for card unload\n\n<code>cardId</code> = card id in PC (Processing Center). <code>cardId</code> is mandatory path parameter.\n\n<code>amount</code> is mandatory request body parameter:\n  -<code>value</code> is mandatory parameter\n  -<code>currency</code> is mandatory parameter\n\nUnload init card service validations:\n- Service validates card contract found by **cardId** status: Card status must be ACTIVE or LOCKED or READY_TO_ACTIVATE\n- Service validates current account linked with card found by **cardId**:\n   - Service checks if current account is ACTIVE\n   - Service checks if current account is not blocked for credit/all operations\n- Service validates if current account party is not suspended, blocked or persona non grata.\n- Service checks if **prefundingAccount** is provided in current account product\n- Service validates prefundingAccount:\n   - Service checks if prefundingAccount is ACTIVE\n   - Service checks if prefundingAccount is not blocked for debit/all operations\n- Service validates if prefunding account holder party is not suspended, blocked or persona non grata.\n- Service validates if **amount** is positive\n- Service checks if there are enough funds in current account\n- Service issues a two factory token\n- Service sends token value to card contract holder\n- Service checks if token value successfully sent\n- Service returns token details\n",
+        "operationId" : "put_8",
+        "parameters" : [ {
+          "name" : "cardId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "e5b94e56-97f3-4d1e-a9d6-505d65a64687"
+        } ],
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CardInitUnloadRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payment-entries" : {
+      "get" : {
+        "tags" : [ "Payment entries" ],
+        "summary" : "",
+        "description" : "",
+        "operationId" : "listOperations",
+        "parameters" : [ {
+          "name" : "accountNumber",
+          "in" : "query",
+          "description" : "Account number",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "LT121000011101001000"
+        }, {
+          "name" : "accountCurrency",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "cardId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "statuses",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "PENDING", "INITIATED", "CONFIRMED", "PROCESSING", "AUTHORIZED", "ACTIVE", "ACCEPTED", "WAITING", "VERIFICATION", "SUSPENDED", "REJECTED", "CANCELED", "COMPLETED", "FAILED", "REVERSED", "REMOVED" ]
+            }
+          }
+        }, {
+          "name" : "direction",
+          "in" : "query",
+          "description" : "direction of payment ",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "CREDIT", "DEBIT" ]
+          }
+        }, {
+          "name" : "operationType",
+          "in" : "query",
+          "description" : "type of payment\n                     ",
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "INTERNAL", "BLOCK", "CURRENCY_EXCHANGE", "INTERBANK", "CARD_FINANCIAL_REVERSAL", "CARD_PURCHASE", "CARD_PURCHASE_REVERSAL", "CARD_PURCHASE_WITH_CASHBACK", "CARD_PURCHASE_WITH_CASHBACK_REVERSAL", "CARD_PURCHASE_UNIQUE", "CARD_PURCHASE_UNIQUE_REVERSAL", "CARD_REFUND", "CARD_REFUND_REVERSAL", "CARD_CASH_WITHDRAWAL", "CARD_CASH_WITHDRAWAL_REVERSAL", "CARD_CASH_WITHDRAWAL_POS", "CARD_CASH_WITHDRAWAL_POS_REVERSAL", "CARD_CASH_ADVANCE", "CARD_CASH_ADVANCE_REVERSAL", "CARD_CASH_IN", "CARD_CASH_IN_REVERSAL", "CARD_ADJUSTMENT_CREDIT", "CARD_ADJUSTMENT_CREDIT_REVERSAL", "CARD_ADJUSTMENT_DEBIT", "CARD_ADJUSTMENT_DEBIT_REVERSAL", "CARD_PAYMENT_CREDIT", "CARD_PAYMENT_CREDIT_REVERSAL", "CARD_ACCOUNT_FUNDING_TRANSACTION", "CARD_ACCOUNT_FUNDING_TRANSACTION_REVERSAL", "TOPUP", "WITHDRAWAL", "FEE" ]
+          }
+        }, {
+          "name" : "dateFrom",
+          "in" : "query",
+          "description" : "Date from",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "2018-01-01"
+        }, {
+          "name" : "dateTill",
+          "in" : "query",
+          "description" : "Date until",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "2018-09-10"
+        }, {
+          "name" : "query",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "filters",
+          "in" : "query",
+          "description" : "filters of payment ",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "PENDING", "NOT_PENDING", "EXCEPT_INACTIVE_BLOCKS", "EXCEPT_INITIATED", "EXCEPT_ZERO_FEES", "EXCEPT_DECLINED_CARD_TRANSACTIONS", "EXCEPT_CARD_ACCOUNT_VERIFICATION_TYPE", "WAIT_FOR_FUNDS" ]
+            },
+            "enum" : [ "PENDING", "NOT_PENDING", "EXCEPT_INACTIVE_BLOCKS", "EXCEPT_INITIATED", "EXCEPT_ZERO_FEES" ]
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "description" : "Record count limit",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 10
+          },
+          "example" : "100"
+        }, {
+          "name" : "skip",
+          "in" : "query",
+          "description" : "Skip first records",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          },
+          "example" : "0"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaymentEntriesPageResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "basic" : [ ]
+        } ]
+      }
+    },
+    "/payment-entries/{operationId}" : {
+      "get" : {
+        "tags" : [ "Payment entries" ],
+        "summary" : "Get single operation",
+        "operationId" : "details",
+        "parameters" : [ {
+          "name" : "operationId",
+          "in" : "path",
+          "description" : "ID of operation that must should be confirmed by end user",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "00124487"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaymentEntryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/registration/continue-suspended" : {
+      "post" : {
+        "tags" : [ "Registration" ],
+        "summary" : "IbUser, IbContract creation for party after /registration/signup party status:\"SUSPENDED\" and manually updated party status to \"ACTIVE\" by AML\n<br>\n<p>Endpoint does the following steps:</p>\n<ul>\n    <li>Creates IbUser</li>\n    <li>Creates IbContract</li>\n    <li>Adds IbUser to IbContract</li>\n</ul>\n<p>\nContinue suspended service validations:\n<ul>\n    <li>CrmParty basic info, addresses, contact details, id document, compliance level</li>\n</ul>",
+        "description" : "IbUser, IbContract creation for party after /registration/signup party status:\"SUSPENDED\" and manually updated party status to \"ACTIVE\" by AML\n<br>\n<p>Endpoint does the following steps:</p>\n<ul>\n    <li>Creates IbUser</li>\n    <li>Creates IbContract</li>\n    <li>Adds IbUser to IbContract</li>\n</ul>\n<p>\nContinue suspended service validations:\n<ul>\n    <li>CrmParty basic info, addresses, contact details, id document, compliance level</li>\n</ul>",
+        "operationId" : "post_1",
+        "parameters" : [ {
+          "name" : "partyId",
+          "in" : "query",
+          "description" : "Party id",
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "49b3b48e-190a-4ae7-b313-96cbe4942545"
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/registration/signup" : {
+      "post" : {
+        "tags" : [ "Registration" ],
+        "summary" : "CrmParty, IbUser, IbContract registration in one step.",
+        "description" : "CrmParty, IbUser, IbContract registration in one step.\n<br>\n<p>Endpoint does following steps:</p>\n<ul>\n    <li>Creates CrmParty</li>\n    <li>Updates CrmParty addresses</li>\n    <li>Updates CrmParty contact details</li>\n    <li>Updates CrmParty id document</li>\n    <li>Completes CrmParty registration</li>\n    <li>Concludes Customer Agreement</li>\n    <li>Updates CrmParty compliance level into \"1\"</li>\n    <li>Creates IbUser (if service configuration parameter in Mongo createIbUserAndIbContract = true)</li>\n    <li>Creates IbContract (if service configuration parameter in Mongo createIbUserAndIbContract = true)</li>\n    <li>Adds IbUser to IbContract</li>\n</ul>\n<p><code>communicationLanguage</code> valid values:</p>\n<ul>\n    <li>lt</li>\n    <li>en</li>\n    <li>ru</li>\n    <li>de</li>\n    <li>fr</li>\n    <li>et</li>\n    <li>lv</li>\n    <li>pl</li>\n    <li>uk</li>\n    <li>be</li>\n    <li>zh</li>\n    <li>es</li>\n</ul>\n\n<p><code>identityDocument.type</code> valid values:</p>\n<ul>\n    <li>PASSPORT</li>\n    <li>ID_CARD</li>\n    <li>RESIDENCE_PERMIT</li>\n</ul>\n\n\n<p><code>politicallyExposedPosition</code> is mandatory if <b>politicallyExposed</b> = true</p>\n\n<p><code>correspondenceAddress</code> is mandatory if <b>useResidentialAddressForCorrespondence</b> = false</p>\n\n<p><code>correspondenceAddress</code> is not mandatory and will be the same as <code>residentialAddress</code> if <b>useResidentialAddressForCorrespondence</b> = true</p>\n\n<p><code>termsAndConditionsAccepted</code> must be true if this field is provided</p>\n\n<p>Available <code>politicallyExposedPosition</code> values:</p>\n<ul>\n    <li>HEAD_OF_STATE</li>\n    <li>PARLIAMENT_MEMBER</li>\n    <li>JUDGE</li>\n    <li>MAYOR</li>\n    <li>AUDITOR_MEMBER</li>\n    <li>STATE_ENTERPRISE_MEMBER</li>\n    <li>MUNICIPALITY_ENTERPRISE_MEMBER</li>\n    <li>HEAD_OF_INTERNATIONAL_ORGANIZATION</li>\n    <li>HEAD_OF_POLITICAL_PARTY</li>\n    <li>DIPLOMAT</li>\n</ul>\n<p>\nOne step sign up service validations:\n<ul>\n    <li>Service validates CrmParty uniqueness in the system</li>\n    <li>Service validates provided basic info, addresses, contact details, id document</li>\n    <li>Service validates CrmParty compliance level</li>\n</ul>",
+        "operationId" : "post_2",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RegistrationOneStepSignupRequest"
+              },
+              "examples" : {
+                "Registration one step signup request" : {
+                  "description" : "Registration one step signup request",
+                  "value" : {
+                    "basicInfo" : {
+                      "firstName" : "Darunas",
+                      "lastName" : "Zavinys",
+                      "personalCode" : "41901038111",
+                      "birthdate" : "1992-09-04",
+                      "birthCountry" : "LT",
+                      "citizenship" : "LT",
+                      "communicationLanguage" : "LT",
+                      "politicallyExposed" : true,
+                      "politicallyExposedPosition" : "HEAD_OF_STATE",
+                      "taxCountries" : [ {
+                        "taxCountry" : "LT",
+                        "taxIdentificationNumber" : "48952941"
+                      } ]
+                    },
+                    "address" : {
+                      "residentialAddress" : {
+                        "country" : "LT",
+                        "municipality" : "Vilniaus r.",
+                        "city" : "Vilnius",
+                        "street" : "Tuskulėnų g.",
+                        "buildingNumber" : "1C",
+                        "apartmentNumber" : "2",
+                        "postalCode" : "LT-09215"
+                      },
+                      "useResidentialForCorrespondence" : true
+                    },
+                    "identityDocument" : {
+                      "issuingCountry" : "LT",
+                      "type" : "PASSPORT",
+                      "number" : "65982581",
+                      "issueDate" : "2021-04-23",
+                      "expiryDate" : "2060-04-23"
+                    },
+                    "contacts" : {
+                      "email" : "Tautvydas115@gmail.com",
+                      "mobilePhone" : "+37062266611"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RegistrationOneStepSignupResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "AccountBalanceResponse" : {
+        "type" : "object",
+        "properties" : {
+          "accountNumber" : {
+            "type" : "string",
+            "description" : "Account IBAN number"
+          },
+          "availableFunds" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string",
+              "description" : "List of available funds by currency"
+            },
+            "description" : "List of available funds by currency"
+          },
+          "balances" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string",
+              "description" : "List of balances by currency"
+            },
+            "description" : "List of balances by currency"
+          },
+          "blocked" : {
+            "type" : "boolean",
+            "description" : "Is account blocked"
+          },
+          "blockedForCredit" : {
+            "type" : "boolean",
+            "description" : "Is account blocked for credit"
+          },
+          "blockedForDebit" : {
+            "type" : "boolean",
+            "description" : "Is account blocked for debit"
+          },
+          "blocks" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string",
+              "description" : "List of blocks by currency"
+            },
+            "description" : "List of blocks by currency"
+          },
+          "debts" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string",
+              "description" : "List of debts by currency"
+            },
+            "description" : "List of debts by currency"
+          },
+          "fundBlocksList" : {
+            "type" : "array",
+            "description" : "List of account blocks",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountFundsBlock"
+            }
+          },
+          "holds" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string",
+              "description" : "List of holds by currency"
+            },
+            "description" : "List of holds by currency"
+          },
+          "partyId" : {
+            "type" : "string"
+          },
+          "reservations" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string",
+              "description" : "List of reservations by currency"
+            },
+            "description" : "List of reservations by currency"
+          }
+        },
+        "description" : "Account balance response",
+        "example" : {
+          "partyId" : "7991671a-dae9-4c72-b052-87e0cf2429b3",
+          "accountNumber" : "LT343550010000001577",
+          "availableFunds" : {
+            "EUR" : "1003.56"
+          },
+          "balances" : {
+            "EUR" : "1058.56"
+          },
+          "debts" : { },
+          "reservations" : {
+            "EUR" : "20.00"
+          },
+          "holds" : {
+            "EUR" : "35.00"
+          },
+          "blocks" : { },
+          "fundBlocksList" : [ ],
+          "blocked" : false,
+          "blockedForCredit" : false,
+          "blockedForDebit" : false
+        }
+      },
+      "AccountBalancesResponse" : {
+        "type" : "array",
+        "description" : "Account balances response",
+        "example" : [ {
+          "partyId" : "7991671a-dae9-4c72-b052-87e0cf2429b3",
+          "accountNumber" : "LT833550010000001568",
+          "availableFunds" : {
+            "EUR" : "8956.99"
+          },
+          "balances" : {
+            "EUR" : "9009.99"
+          },
+          "debts" : { },
+          "reservations" : {
+            "EUR" : "53.00"
+          },
+          "holds" : { },
+          "blocks" : { },
+          "fundBlocksList" : [ ],
+          "blocked" : false,
+          "blockedForCredit" : false,
+          "blockedForDebit" : false
+        }, {
+          "partyId" : "7991671a-dae9-4c72-b052-87e0cf2429b3",
+          "accountNumber" : "LT343550010000001577",
+          "availableFunds" : {
+            "EUR" : "1003.56"
+          },
+          "balances" : {
+            "EUR" : "1058.56"
+          },
+          "debts" : { },
+          "reservations" : {
+            "EUR" : "20.00"
+          },
+          "holds" : {
+            "EUR" : "35.00"
+          },
+          "blocks" : { },
+          "fundBlocksList" : [ ],
+          "blocked" : false,
+          "blockedForCredit" : false,
+          "blockedForDebit" : false
+        }, {
+          "partyId" : "7991671a-dae9-4c72-b052-87e0cf2429b3",
+          "accountNumber" : "LT703550010000001608",
+          "availableFunds" : {
+            "EUR" : "0.00"
+          },
+          "balances" : {
+            "EUR" : "0.00"
+          },
+          "debts" : { },
+          "reservations" : { },
+          "holds" : { },
+          "blocks" : { },
+          "fundBlocksList" : [ ],
+          "blocked" : false,
+          "blockedForCredit" : false,
+          "blockedForDebit" : false
+        }, {
+          "partyId" : "7991671a-dae9-4c72-b052-87e0cf2429b3",
+          "accountNumber" : "LT263550010000001624",
+          "availableFunds" : {
+            "EUR" : "0.00"
+          },
+          "balances" : {
+            "EUR" : "0.00"
+          },
+          "debts" : { },
+          "reservations" : { },
+          "holds" : { },
+          "blocks" : { },
+          "fundBlocksList" : [ ],
+          "blocked" : false,
+          "blockedForCredit" : false,
+          "blockedForDebit" : false
+        }, {
+          "partyId" : "7991671a-dae9-4c72-b052-87e0cf2429b3",
+          "accountNumber" : "LT963550010000001625",
+          "availableFunds" : {
+            "EUR" : "0.00"
+          },
+          "balances" : {
+            "EUR" : "0.00"
+          },
+          "debts" : { },
+          "reservations" : { },
+          "holds" : { },
+          "blocks" : { },
+          "fundBlocksList" : [ ],
+          "blocked" : false,
+          "blockedForCredit" : false,
+          "blockedForDebit" : false
+        } ],
+        "items" : {
+          "type" : "object",
+          "properties" : {
+            "partyId" : {
+              "type" : "string"
+            },
+            "accountNumber" : {
+              "type" : "string"
+            },
+            "availableFunds" : {
+              "$ref" : "#/components/schemas/AmountWithCurrency"
+            },
+            "balances" : {
+              "$ref" : "#/components/schemas/AmountWithCurrency"
+            },
+            "debts" : {
+              "$ref" : "#/components/schemas/AmountWithCurrency"
+            },
+            "reservations" : {
+              "$ref" : "#/components/schemas/AmountWithCurrency"
+            },
+            "holds" : {
+              "$ref" : "#/components/schemas/AmountWithCurrency"
+            },
+            "blocks" : {
+              "$ref" : "#/components/schemas/AmountWithCurrency"
+            },
+            "fundBlocksList" : {
+              "type" : "array",
+              "description" : "List of account blocks",
+              "items" : {
+                "type" : "object",
+                "properties" : {
+                  "amount" : {
+                    "$ref" : "#/components/schemas/AmountWithCurrency"
+                  },
+                  "validFrom" : {
+                    "type" : "string",
+                    "format" : "date"
+                  },
+                  "validTill" : {
+                    "type" : "string",
+                    "format" : "date"
+                  },
+                  "source" : {
+                    "type" : "string",
+                    "enum" : [ "NANO", "PLAIS" ]
+                  },
+                  "initiator" : {
+                    "type" : "string",
+                    "enum" : [ "BANK", "PLAIS", "BAILIFF", "STI", "TAAR", "SODRA", "CUSTOMS", "LB", "OTHER" ]
+                  },
+                  "reason" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            },
+            "blocked" : {
+              "type" : "boolean"
+            },
+            "blockedForCredit" : {
+              "type" : "boolean"
+            },
+            "blockedForDebit" : {
+              "type" : "boolean"
+            }
+          }
+        }
+      },
+      "AccountFundsBlock" : {
+        "type" : "object",
+        "properties" : {
+          "amount" : {
+            "$ref" : "#/components/schemas/AmountWithCurrency"
+          },
+          "initiator" : {
+            "type" : "string",
+            "enum" : [ "BANK", "PLAIS", "BAILIFF", "STI", "TAAR", "SODRA", "CUSTOMS", "LB", "OTHER" ]
+          },
+          "reason" : {
+            "type" : "string"
+          },
+          "source" : {
+            "type" : "string",
+            "enum" : [ "NANO", "PLAIS" ]
+          },
+          "validFrom" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "validTill" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "description" : "List of account blocks"
+      },
+      "AccountOpenResponse" : {
+        "type" : "object",
+        "properties" : {
+          "accountNumber" : {
+            "type" : "string"
+          }
+        },
+        "description" : "Account open response",
+        "example" : {
+          "accountNumber" : "LT183550010000001671",
+          "metadata" : {
+            "responseId" : "6669d1e2-fb66-45e4-86e3-49a506b8241d",
+            "correlationId" : "5e61c9fc-475a-430b-85c3-3181305407af",
+            "hasErrorMessage" : false,
+            "messages" : [ ]
+          }
+        }
+      },
+      "AccountStatementEntryResponse" : {
+        "type" : "object",
+        "properties" : {
+          "accountCurrency" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "string",
+            "description" : "Payment amount"
+          },
+          "date" : {
+            "pattern" : "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "details" : {
+            "type" : "string",
+            "description" : "Payment details"
+          },
+          "exchangeRate" : {
+            "type" : "string",
+            "description" : "Exchange rate"
+          },
+          "exchangedAmount" : {
+            "type" : "string",
+            "description" : "Exchanged amount"
+          },
+          "exchangedCurrency" : {
+            "type" : "string",
+            "description" : "Exchanged amount currency"
+          },
+          "merchantCity" : {
+            "type" : "string",
+            "description" : "Merchant city"
+          },
+          "merchantCountry" : {
+            "type" : "string",
+            "description" : "Merchant country"
+          },
+          "merchantName" : {
+            "type" : "string",
+            "description" : "Merchant name"
+          },
+          "operationType" : {
+            "type" : "string",
+            "description" : "Internal identification of the operation type"
+          },
+          "otherAccountHolderName" : {
+            "type" : "string",
+            "description" : "Credit account holder name"
+          },
+          "otherAccountNumber" : {
+            "type" : "string",
+            "description" : "Credit account number"
+          },
+          "pan" : {
+            "type" : "string",
+            "description" : "Card pan number"
+          },
+          "paymentId" : {
+            "type" : "string",
+            "description" : "Unique payment identification in the system"
+          },
+          "runningBalance" : {
+            "type" : "string",
+            "description" : "Account balance when payment is completed."
+          },
+          "serviceType" : {
+            "type" : "string",
+            "description" : "Service type"
+          },
+          "type" : {
+            "type" : "string",
+            "description" : "Payment type",
+            "enum" : [ "DEBIT, CREDIT" ]
+          }
+        },
+        "description" : "Account statement entry",
+        "example" : {
+          "paymentId" : "00000002",
+          "type" : "CREDIT",
+          "operationType" : "INTERNAL_TRANSFER.TRANSFER",
+          "date" : "2021-11-16T11:50:28.075Z",
+          "amount" : "10.00",
+          "runningBalance" : "10",
+          "details" : "test"
+        }
+      },
+      "AccountStatementResponse" : {
+        "type" : "object",
+        "properties" : {
+          "entries" : {
+            "type" : "array",
+            "description" : "Array of statement entries",
+            "items" : {
+              "$ref" : "#/components/schemas/AccountStatementEntryResponse"
+            }
+          },
+          "hasMore" : {
+            "type" : "boolean",
+            "description" : "Indication if the set has more records"
+          }
+        },
+        "description" : "Account statement response",
+        "example" : {
+          "entries" : [ {
+            "paymentId" : "00000002",
+            "type" : "CREDIT",
+            "operationType" : "INTERNAL_TRANSFER.TRANSFER",
+            "date" : "2021-11-16T11:50:28.075Z",
+            "amount" : "10.00",
+            "runningBalance" : "10",
+            "details" : "test"
+          }, {
+            "paymentId" : "00000003",
+            "type" : "DEBIT",
+            "operationType" : "INTERNAL_PAYMENT.TRANSFER",
+            "date" : "2021-11-16T11:50:28.075Z",
+            "amount" : "0.10",
+            "runningBalance" : "9.9",
+            "otherAccountHolderName" : "First First",
+            "otherAccountNumber" : "LT263080010000000001",
+            "details" : "cuba tobaco"
+          }, {
+            "paymentId" : "00000006",
+            "type" : "DEBIT",
+            "operationType" : "INTERNAL_PAYMENT.TRANSFER",
+            "date" : "2021-11-16T11:50:28.075Z",
+            "amount" : "0.11",
+            "runningBalance" : "9.79",
+            "otherAccountHolderName" : "First First",
+            "otherAccountNumber" : "LT263080010000000001",
+            "details" : "cubatobaco"
+          } ]
+        }
+      },
+      "Amount" : {
+        "type" : "object",
+        "properties" : {
+          "currency" : {
+            "$ref" : "#/components/schemas/CurrencyCode"
+          },
+          "value" : {
+            "type" : "string",
+            "example" : "10"
+          }
+        }
+      },
+      "AmountWithCurrency" : {
+        "type" : "object",
+        "properties" : {
+          "currency" : {
+            "$ref" : "#/components/schemas/CurrencyCode"
+          },
+          "value" : {
+            "type" : "string",
+            "example" : "10.00"
+          }
+        },
+        "example" : "{\"value\":\"123.45\",\"currency\":\"EUR\"}"
+      },
+      "BlockCardRequest" : {
+        "required" : [ "cardStopCause" ],
+        "type" : "object",
+        "properties" : {
+          "cardStopCause" : {
+            "type" : "string",
+            "enum" : [ "STOLEN", "LOST", "NO_MONEY", "PERSONALIZATION", "STOPPED", "PICK_UP", "EXPIRED", "CLOSED", "SUSPECTED_FRAUD" ]
+          }
+        }
+      },
+      "Card" : {
+        "type" : "object",
+        "properties" : {
+          "accountBalance" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "accountNumber" : {
+            "type" : "string"
+          },
+          "accountPartyId" : {
+            "type" : "string"
+          },
+          "activationDate" : {
+            "pattern" : "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "applicantPartyId" : {
+            "type" : "string"
+          },
+          "autoRenew" : {
+            "type" : "boolean"
+          },
+          "blocksBalance" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "cardCurrency" : {
+            "type" : "string"
+          },
+          "cardHolderName" : {
+            "type" : "string"
+          },
+          "cardHolderPartyId" : {
+            "type" : "string"
+          },
+          "cardId" : {
+            "type" : "string"
+          },
+          "cardPaymentNetwork" : {
+            "type" : "string",
+            "enum" : [ "VISA", "MASTERCARD" ]
+          },
+          "cardProductId" : {
+            "type" : "string"
+          },
+          "cardProductType" : {
+            "type" : "string",
+            "enum" : [ "DEBIT", "CREDIT", "INSTANT", "BUSINESS", "CORPORATE", "VIRTUAL", "CORPORATE_VIRTUAL", "PRE_PAID" ]
+          },
+          "created3dsPassword" : {
+            "type" : "boolean"
+          },
+          "debtsBalance" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "enabled3DSecure" : {
+            "type" : "boolean"
+          },
+          "holdsBalance" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "orderDate" : {
+            "pattern" : "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "pan" : {
+            "type" : "string"
+          },
+          "reservationsBalance" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "READY_TO_ACTIVATE", "ACTIVE", "CLOSED", "EXPIRED", "BLOCKED", "LOCKED", "SET_PIN", "REMOVED", "FAILED_IN_PC", "FRAUD" ]
+          },
+          "validTill" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "example" : {
+          "accountNumber" : "LT343550010000001577",
+          "status" : "ACTIVE",
+          "pan" : "4349********1446",
+          "cardId" : "CARD-w7ibfsa",
+          "validTill" : "2024-10-31",
+          "cardHolderName" : "DARUNAS ZAVINYS",
+          "cardProductId" : "VISA-DEBIT-CARD",
+          "autoRenew" : false,
+          "enabled3DSecure" : true,
+          "cardCurrency" : "EUR",
+          "accountBalance" : {
+            "EUR" : "1003.56"
+          },
+          "reservationsBalance" : {
+            "EUR" : "20.00"
+          },
+          "holdsBalance" : {
+            "EUR" : "35.00"
+          },
+          "debtsBalance" : {
+            "EUR" : "0.00"
+          },
+          "blocksBalance" : {
+            "EUR" : "0.00"
+          },
+          "created3dsPassword" : true,
+          "cardProductType" : "DEBIT",
+          "cardPaymentNetwork" : "VISA",
+          "orderDate" : "2021-11-16T11:50:28.075Z",
+          "activationDate" : "2021-11-16T11:50:28.075Z",
+          "accountPartyId" : "7991671a-dae9-4c72-b052-87e0cf2429b3",
+          "applicantPartyId" : "7991671a-dae9-4c72-b052-87e0cf2429b3",
+          "cardHolderPartyId" : "7991671a-dae9-4c72-b052-87e0cf2429b3"
+        }
+      },
+      "CardAccountBalanceResponse" : {
+        "type" : "object",
+        "properties" : {
+          "balances" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        },
+        "example" : {
+          "balances" : {
+            "EUR" : "-3.00"
+          }
+        }
+      },
+      "CardConfirmUnloadRequest" : {
+        "type" : "object",
+        "properties" : {
+          "password" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CardConfirmUnloadResponse" : {
+        "type" : "object",
+        "properties" : {
+          "operationId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/PaymentStatus"
+          }
+        },
+        "description" : "- <code>operationId</code> is payment entry id\n- <code>status</code> is payment status\n",
+        "example" : {
+          "operationId" : "WITHDRAWAL:S:16370681:DEBIT",
+          "status" : {
+            "status" : "COMPLETED"
+          }
+        }
+      },
+      "CardInitUnloadRequest" : {
+        "type" : "object",
+        "properties" : {
+          "amount" : {
+            "$ref" : "#/components/schemas/Amount"
+          }
+        }
+      },
+      "CardLoadRequest" : {
+        "required" : [ "amount", "currency" ],
+        "type" : "object",
+        "properties" : {
+          "amount" : {
+            "type" : "string"
+          },
+          "currency" : {
+            "type" : "string"
+          }
+        },
+        "example" : {
+          "amount" : "10",
+          "currency" : "EUR"
+        }
+      },
+      "CardLoadResponse" : {
+        "type" : "object",
+        "properties" : {
+          "operationId" : {
+            "type" : "string"
+          },
+          "status" : {
+            "$ref" : "#/components/schemas/PaymentStatus"
+          }
+        },
+        "description" : "- <code>operationId</code> is payment entry id\n- <code>status</code> is payment status\n",
+        "example" : {
+          "operationId" : "TOPUP:S:16397522:CREDIT",
+          "status" : {
+            "status" : "COMPLETED"
+          }
+        }
+      },
+      "CardProduct" : {
+        "type" : "object",
+        "properties" : {
+          "cardIssuingCountries" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "cardProductId" : {
+            "type" : "string"
+          },
+          "cardProductName" : {
+            "type" : "string"
+          },
+          "cardProductType" : {
+            "type" : "string",
+            "enum" : [ "DEBIT", "CREDIT", "INSTANT", "BUSINESS", "CORPORATE", "VIRTUAL", "CORPORATE_VIRTUAL", "PRE_PAID" ]
+          },
+          "cardProductTypeDetails" : {
+            "$ref" : "#/components/schemas/CardProductTypeDetails"
+          },
+          "productFees" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CardProductFee"
+            }
+          }
+        },
+        "example" : {
+          "cardProductId" : "CARD-VISA-DEBIT-PRIVATE",
+          "cardProductType" : "DEBIT",
+          "cardProductTypeDetails" : {
+            "virtual" : false,
+            "partyType" : "PRIVATE_PERSON"
+          },
+          "cardProductName" : "VISA debit card",
+          "documentId" : "5fc8be049e8c3e31e441c71e",
+          "productFees" : [ {
+            "serviceType" : "CARD_DELIVERY_BY_COURIER",
+            "channelAmounts" : [ {
+              "feeAmount" : "50",
+              "feeCurrency" : "EUR"
+            } ]
+          }, {
+            "serviceType" : "CARD_DELIVERY_BY_POST",
+            "channelAmounts" : [ {
+              "feeAmount" : "0",
+              "feeCurrency" : "EUR"
+            } ]
+          }, {
+            "serviceType" : "CARD_DELIVERY_BY_REGISTERED_POST",
+            "channelAmounts" : [ {
+              "feeAmount" : "3",
+              "feeCurrency" : "EUR"
+            } ]
+          }, {
+            "serviceType" : "CARD_ISSUE",
+            "channelAmounts" : [ {
+              "feeAmount" : "3",
+              "feeCurrency" : "EUR"
+            } ]
+          }, {
+            "serviceType" : "CARD_MAINTENANCE",
+            "channelAmounts" : [ {
+              "feeAmount" : "1",
+              "feeCurrency" : "EUR"
+            } ]
+          } ],
+          "cardIssuingCountries" : [ "MC", "UA" ]
+        }
+      },
+      "CardProductChannelAmount" : {
+        "type" : "object",
+        "properties" : {
+          "channelId" : {
+            "type" : "string"
+          },
+          "feeAmount" : {
+            "type" : "string"
+          },
+          "feeCurrency" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CardProductFee" : {
+        "type" : "object",
+        "properties" : {
+          "channelAmounts" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CardProductChannelAmount"
+            }
+          },
+          "serviceType" : {
+            "type" : "string"
+          }
+        }
+      },
+      "CardProductTypeDetails" : {
+        "type" : "object",
+        "properties" : {
+          "partyType" : {
+            "type" : "string",
+            "enum" : [ "PRIVATE_PERSON", "SELF_EMPLOYED_PERSON", "ORGANIZATION" ]
+          },
+          "virtual" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "CloseCardRequest" : {
+        "type" : "object",
+        "properties" : {
+          "closeCurrentAccount" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "CurrencyCode" : {
+        "type" : "string",
+        "description" : "Currency code (ISO)",
+        "example" : "EUR"
+      },
+      "CurrencyPair" : {
+        "type" : "object",
+        "properties" : {
+          "baseCurrency" : {
+            "type" : "string"
+          },
+          "quoteCurrency" : {
+            "type" : "string"
+          }
+        }
+      },
+      "DeliveryAddress" : {
+        "required" : [ "city", "country", "postalCode", "street" ],
+        "type" : "object",
+        "properties" : {
+          "apartmentNumber" : {
+            "maxLength" : 50,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "buildingNumber" : {
+            "maxLength" : 50,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "city" : {
+            "maxLength" : 100,
+            "minLength" : 0,
+            "type" : "string",
+            "description" : "settlement = city"
+          },
+          "country" : {
+            "type" : "string"
+          },
+          "municipality" : {
+            "type" : "string"
+          },
+          "postalCode" : {
+            "maxLength" : 10,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "street" : {
+            "maxLength" : 100,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        }
+      },
+      "DigitalItem" : {
+        "type" : "object",
+        "properties" : {
+          "eventDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "itemId" : {
+            "type" : "string"
+          },
+          "itemName" : {
+            "type" : "string"
+          },
+          "itemType" : {
+            "type" : "string"
+          },
+          "itemUrl" : {
+            "type" : "string"
+          },
+          "validFrom" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "validTo" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
+      "DigitalItems" : {
+        "type" : "object",
+        "properties" : {
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DigitalItem"
+            }
+          }
+        },
+        "description" : "Digital goods or invoices"
+      },
+      "GetCardsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "cards" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Card"
+            }
+          }
+        }
+      },
+      "IssueCardResponse" : {
+        "type" : "object",
+        "properties" : {
+          "cardId" : {
+            "type" : "string"
+          }
+        },
+        "example" : {
+          "cardId" : "379340ea-48d6-4d2b-8db4-8ed4e54b321e"
+        }
+      },
+      "IssuePlasticCardRequest" : {
+        "required" : [ "accountNumber", "accountPartyId", "applicantPartyId", "cardDeliveryAddress", "cardDeliveryMethod", "cardDeliveryType", "cardHolderPartyId" ],
+        "type" : "object",
+        "properties" : {
+          "accountNumber" : {
+            "maxLength" : 50,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "accountPartyId" : {
+            "type" : "string"
+          },
+          "applicantPartyId" : {
+            "type" : "string"
+          },
+          "cardDeliveryAddress" : {
+            "$ref" : "#/components/schemas/DeliveryAddress"
+          },
+          "cardDeliveryMethod" : {
+            "type" : "string",
+            "enum" : [ "POST", "REGISTERED_POST", "COURIER" ]
+          },
+          "cardDeliveryType" : {
+            "type" : "string",
+            "enum" : [ "AGENCY", "ADDRESS" ]
+          },
+          "cardHolderPartyId" : {
+            "type" : "string"
+          },
+          "cardProductId" : {
+            "type" : "string"
+          },
+          "cardProductType" : {
+            "type" : "string",
+            "enum" : [ "DEBIT", "CREDIT", "INSTANT", "BUSINESS", "CORPORATE", "VIRTUAL", "CORPORATE_VIRTUAL", "PRE_PAID" ]
+          },
+          "cardReceiverCompanyName" : {
+            "type" : "string"
+          },
+          "companyEmbossedName" : {
+            "maxLength" : 24,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "example" : {
+          "accountPartyId" : "93c3ddc8-4d31-4c59-84c9-ec9babe7528b",
+          "applicantPartyId" : "93c3ddc8-4d31-4c59-84c9-ec9babe7528b",
+          "cardHolderPartyId" : "93c3ddc8-4d31-4c59-84c9-ec9babe7528b",
+          "accountNumber" : "LT623550010000000394",
+          "cardProductId" : "CARD-VISA-DEBIT-PRIVATE-PVK",
+          "cardProductType" : "DEBIT",
+          "companyEmbossedName" : "company_embossed_name",
+          "cardDeliveryMethod" : "POST",
+          "cardDeliveryType" : "ADDRESS",
+          "cardReceiverCompanyName" : "card_receiver_company_name",
+          "cardDeliveryAddress" : {
+            "country" : "LT",
+            "municipality" : "LT",
+            "city" : "LT",
+            "postalCode" : "LT",
+            "street" : "LT",
+            "buildingNumber" : "20",
+            "apartmentNumber" : "10"
+          }
+        }
+      },
+      "IssueVirtualCardRequest" : {
+        "required" : [ "accountNumber", "accountPartyId", "applicantPartyId", "cardHolderPartyId" ],
+        "type" : "object",
+        "properties" : {
+          "accountNumber" : {
+            "maxLength" : 50,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "accountPartyId" : {
+            "type" : "string"
+          },
+          "applicantPartyId" : {
+            "type" : "string"
+          },
+          "cardHolderPartyId" : {
+            "type" : "string"
+          },
+          "cardProductId" : {
+            "type" : "string"
+          },
+          "cardProductType" : {
+            "type" : "string",
+            "enum" : [ "DEBIT", "CREDIT", "INSTANT", "BUSINESS", "CORPORATE", "VIRTUAL", "CORPORATE_VIRTUAL", "PRE_PAID" ]
+          },
+          "companyEmbossedName" : {
+            "maxLength" : 24,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "example" : {
+          "accountPartyId" : "93c3ddc8-4d31-4c59-84c9-ec9babe7528b",
+          "applicantPartyId" : "93c3ddc8-4d31-4c59-84c9-ec9babe7528b",
+          "cardHolderPartyId" : "93c3ddc8-4d31-4c59-84c9-ec9babe7528b",
+          "accountNumber" : "LT623550010000000394",
+          "cardProductId" : "CARD-VISA-DEBIT-PRIVATE-PVK",
+          "cardProductType" : "VIRTUAL",
+          "companyEmbossedName" : "company_embossed_name"
+        }
+      },
+      "LocationCoordinates" : {
+        "type" : "object",
+        "properties" : {
+          "latitude" : {
+            "type" : "string",
+            "format" : "double"
+          },
+          "longitude" : {
+            "type" : "string",
+            "format" : "double"
+          }
+        }
+      },
+      "MetadataExample" : {
+        "example" : {
+          "metadata" : {
+            "responseId" : "e418b549-64b8-4987-bbb7-2a894805adfd",
+            "correlationId" : "4bb35699-9e05-4961-99b3-e1e3f5066881",
+            "hasErrorMessage" : false,
+            "messages" : [ ]
+          }
+        }
+      },
+      "MetadataMessage" : {
+        "type" : "object",
+        "properties" : {
+          "arguments" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            },
+            "description" : "Additional message attributes.\nContains a list of key value argument pairs, that should help to build custom error message."
+          },
+          "code" : {
+            "type" : "string",
+            "description" : "Message code, for error messages indicating error code"
+          },
+          "debugInfo" : {
+            "type" : "string",
+            "description" : "Detailed technical info related to message. Not present in PRODUCTION mode!"
+          },
+          "details" : {
+            "type" : "string",
+            "description" : "Long explanation text containing detailed information about this message"
+          },
+          "id" : {
+            "type" : "string",
+            "description" : "Unique message ID"
+          },
+          "level" : {
+            "type" : "string",
+            "description" : "Message severity level\n<ul>\n<li>ERROR - this level indicates that something went wrong or incorrect data was passed.</li>\n<li>WARNING - this level indicates that request was successful but there is something that requires attention. For example that payment was stopped by AML and user need to provide additional information to the institution for further processing.</li>\n<li>INFO - this level indicates that request was successful but there is some additional information about the outcome. For example, payment will be executed next business day.</li>\n<li>SUCCESS - this level indicates that request was successful and there is some additional information about the outcome. Duplicates the INFO level, but could be used to display other colour in the information block.</li>\n</ul>",
+            "enum" : [ "ERROR", "WARNING", "INFO", "SUCCESS" ]
+          },
+          "location" : {
+            "type" : "string",
+            "description" : "Name of the request parameter / attribute that caused the problem.\nNote that full path of nested attributes is returned in arguments.fieldPath"
+          },
+          "message" : {
+            "type" : "string",
+            "description" : "Message text (human readable explanation of event)"
+          },
+          "source" : {
+            "type" : "string",
+            "description" : "Source of the message, may indicate system or sub-system, or event third party systems if they were the true cause of the message occurrence"
+          },
+          "timestamp" : {
+            "type" : "string",
+            "description" : "Date and time when event that created this message occurred in the system",
+            "format" : "date-time"
+          }
+        }
+      },
+      "NewCardAllowedResponse" : {
+        "type" : "object",
+        "properties" : {
+          "newCardAllowed" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "OpenCurrentAccountRequest" : {
+        "required" : [ "currency", "partyId" ],
+        "type" : "object",
+        "properties" : {
+          "applicantPartyId" : {
+            "type" : "string",
+            "description" : "Party ID for applicant"
+          },
+          "authorizedPersonIds" : {
+            "uniqueItems" : true,
+            "type" : "array",
+            "description" : "List of party ID for authorized persons",
+            "items" : {
+              "type" : "string",
+              "description" : "List of party ID for authorized persons"
+            }
+          },
+          "currency" : {
+            "type" : "string",
+            "description" : "Account currency in ISO",
+            "example" : "EUR"
+          },
+          "deliveryFrequency" : {
+            "type" : "string",
+            "description" : "Statement delivery frequency",
+            "deprecated" : true,
+            "enum" : [ "DAILY", "FIVE_DAYS", "TEN_DAYS", "WEEKLY", "MONTHLY", "QUARTERLY", "SEMI_ANNUAL", "ANNUAL" ]
+          },
+          "deliveryMode" : {
+            "type" : "string",
+            "description" : "Statement delivery mode",
+            "deprecated" : true,
+            "enum" : [ "BRANCH", "POST", "EMAIL" ]
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Account description"
+          },
+          "feeAccountNumber" : {
+            "type" : "string",
+            "description" : "Fee account"
+          },
+          "holderId" : {
+            "type" : "string",
+            "description" : "Party ID for account holder"
+          },
+          "jointHolderPartyIds" : {
+            "uniqueItems" : true,
+            "type" : "array",
+            "description" : "List of party IDs for joint holder",
+            "items" : {
+              "type" : "string",
+              "description" : "List of party IDs for joint holder"
+            }
+          },
+          "jointHoldersMandate" : {
+            "type" : "string",
+            "description" : "Joint mandate holder type",
+            "deprecated" : true
+          },
+          "partyId" : {
+            "type" : "string"
+          }
+        },
+        "description" : "Account open response",
+        "example" : {
+          "partyId" : "eb1e44ef-5a91-4a01-8073-d64369bb3c21",
+          "currency" : "EUR",
+          "description" : "Account Description Text",
+          "applicantPartyId" : "eb1e44ef-5a91-4a01-8073-d64369bb3c21",
+          "jointHolderPartyIds" : [ "666a88f0-0cfb-4b29-9879-5ddfb86c7aa6" ],
+          "authorizedPersonIds" : [ "666a88f0-0cfb-4b29-9879-5ddfb86c7aa6" ]
+        }
+      },
+      "PaymentEntriesPageResponse" : {
+        "type" : "object",
+        "properties" : {
+          "count" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "hasMore" : {
+            "type" : "boolean",
+            "description" : "Indication if the set has more records"
+          },
+          "results" : {
+            "type" : "array",
+            "description" : "List of result",
+            "items" : {
+              "$ref" : "#/components/schemas/PaymentEntryResponse"
+            }
+          }
+        },
+        "example" : {
+          "count" : "3",
+          "results" : [ {
+            "operationId" : "WITHDRAWAL:S:16563693:DEBIT",
+            "operationType" : "WITHDRAWAL",
+            "initiatorType" : "WEB_API",
+            "direction" : "DEBIT",
+            "payerAccountNumber" : "LT343550010000001577",
+            "beneficiaryAccountNumber" : "LT483550020000001567",
+            "amount" : "10.00",
+            "currency" : "EUR",
+            "status" : "COMPLETED",
+            "createdOn" : "2021-12-13T12:42:41.204Z",
+            "date" : "2021-12-13T12:42:41.204Z",
+            "updatedOn" : "2021-12-13T12:42:42.302Z",
+            "pan" : "****2821",
+            "cardId" : "SPC.CARD-gv6comi"
+          }, {
+            "operationId" : "TOPUP:S:16563691:CREDIT",
+            "operationType" : "TOPUP",
+            "initiatorType" : "WEB_API",
+            "direction" : "CREDIT",
+            "payerAccountNumber" : "LT483550020000001567",
+            "beneficiaryAccountNumber" : "LT343550010000001577",
+            "amount" : "1.00",
+            "currency" : "EUR",
+            "status" : "COMPLETED",
+            "createdOn" : "2021-12-13T12:41:18.235Z",
+            "date" : "2021-12-13T12:41:18.235Z",
+            "updatedOn" : "2021-12-13T12:41:19.167Z",
+            "pan" : "****2821",
+            "cardId" : "SPC.CARD-gv6comi"
+          }, {
+            "operationId" : "CARD_PURCHASE:I:51d37afb-d3e3-4f4e-9e4c-a422a0cc8084:DEBIT",
+            "operationType" : "CARD_PURCHASE",
+            "initiatorType" : "NOSTRO_MESSAGE",
+            "direction" : "DEBIT",
+            "payerName" : "Darunas Zavinys",
+            "payerAccountNumber" : "LT343550010000001577",
+            "amount" : "5.01",
+            "currency" : "EUR",
+            "exchangeRate" : "1.0000",
+            "status" : "AUTHORIZED",
+            "createdOn" : "2021-12-09T09:41:25.058Z",
+            "feeAmount" : "0.00",
+            "date" : "2021-12-09T09:41:24.903Z",
+            "updatedOn" : "2021-12-09T09:41:25.058Z",
+            "productId" : "VISA-DEBIT-CARD-SCC",
+            "cardProductType" : "DEBIT",
+            "cardPaymentNetwork" : "VISA",
+            "transactionAmount" : "6.01",
+            "transactionCurrency" : "USD",
+            "merchantName" : "FLYUIA.COM",
+            "conversionRate" : "1",
+            "merchantCategoryCodeDescription" : "Airlines, Air Carriers ( not listed elsewhere)",
+            "merchantCity" : "KYIV",
+            "merchantCountry" : "UA",
+            "cardHoldId" : "8267a891-11c5-449c-84eb-ee19d5171081",
+            "merchantCategoryCode" : "6011",
+            "pan" : "****7477",
+            "cardId" : "SPC.CARD-gv6comi"
+          } ],
+          "hasMore" : false,
+          "metadata" : {
+            "responseId" : "242c79dd-ae22-4e30-9f45-6f2a19b35675",
+            "correlationId" : "7730ff6c-3b55-46f7-aa76-53e683ce3650",
+            "hasErrorMessage" : false,
+            "messages" : [ ]
+          }
+        }
+      },
+      "PaymentEntryResponse" : {
+        "type" : "object",
+        "properties" : {
+          "agreementId" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "string"
+          },
+          "applicantPartyId" : {
+            "type" : "string"
+          },
+          "availableSpendingAmount" : {
+            "type" : "string"
+          },
+          "beneficiaryAccountNumber" : {
+            "type" : "string"
+          },
+          "beneficiaryBank" : {
+            "type" : "string"
+          },
+          "beneficiaryName" : {
+            "type" : "string"
+          },
+          "beneficiaryPhoneNumber" : {
+            "type" : "string"
+          },
+          "cardHoldId" : {
+            "type" : "string"
+          },
+          "cardId" : {
+            "type" : "string"
+          },
+          "cardPaymentNetwork" : {
+            "type" : "string",
+            "enum" : [ "VISA", "MASTERCARD" ]
+          },
+          "cardProductType" : {
+            "type" : "string",
+            "enum" : [ "DEBIT", "CREDIT", "INSTANT", "BUSINESS", "CORPORATE", "VIRTUAL", "CORPORATE_VIRTUAL", "PRE_PAID" ]
+          },
+          "confirmationType" : {
+            "type" : "string",
+            "enum" : [ "NONE", "PASSWORD", "SIGNATURE" ]
+          },
+          "conversionRate" : {
+            "type" : "string"
+          },
+          "createdOn" : {
+            "pattern" : "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "currency" : {
+            "type" : "string"
+          },
+          "date" : {
+            "pattern" : "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "digitalItems" : {
+            "$ref" : "#/components/schemas/DigitalItems"
+          },
+          "direction" : {
+            "type" : "string",
+            "enum" : [ "DEBIT", "CREDIT" ]
+          },
+          "discountAmount" : {
+            "type" : "string",
+            "description" : "Discount amount"
+          },
+          "documentId" : {
+            "type" : "string"
+          },
+          "exchangeRate" : {
+            "type" : "string"
+          },
+          "exchangeRateCurrencyPair" : {
+            "$ref" : "#/components/schemas/CurrencyPair"
+          },
+          "feeAccountNumber" : {
+            "type" : "string"
+          },
+          "feeAmount" : {
+            "type" : "string"
+          },
+          "feeCurrency" : {
+            "type" : "string"
+          },
+          "initiator" : {
+            "type" : "string",
+            "enum" : [ "BANK", "PLAIS", "BAILIFF", "STI", "TAAR", "SODRA", "CUSTOMS", "LB", "OTHER" ]
+          },
+          "initiatorType" : {
+            "type" : "string",
+            "enum" : [ "IB_OPERATION", "TELLER_UI", "WEB_API", "PAYMENT_COLLECTION", "NOSTRO_MESSAGE", "PLAIS", "JOB", "LOAN_AGREEMENT", "DEPOSIT_AGREEMENT", "STANDING_ORDER", "CURRENT_ACCOUNT_AGREEMENT" ]
+          },
+          "loyaltyApplied" : {
+            "type" : "boolean",
+            "description" : "Loyalty applied"
+          },
+          "loyaltyCard" : {
+            "type" : "string",
+            "description" : "Loyalty card"
+          },
+          "loyaltyReasonCode" : {
+            "type" : "string",
+            "description" : "Loyalty reason code"
+          },
+          "loyaltyReasonDescription" : {
+            "type" : "string",
+            "description" : "Loyalty reason description"
+          },
+          "merchantAddress" : {
+            "type" : "string"
+          },
+          "merchantCategoryCode" : {
+            "type" : "string"
+          },
+          "merchantCategoryCodeDescription" : {
+            "type" : "string"
+          },
+          "merchantCity" : {
+            "type" : "string"
+          },
+          "merchantCommonName" : {
+            "type" : "string"
+          },
+          "merchantCountry" : {
+            "type" : "string"
+          },
+          "merchantName" : {
+            "type" : "string"
+          },
+          "merchantOperationId" : {
+            "type" : "string"
+          },
+          "merchantOperationType" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "merchantPostCode" : {
+            "type" : "string"
+          },
+          "merchantWebsite" : {
+            "type" : "string"
+          },
+          "msisdnTips" : {
+            "type" : "string"
+          },
+          "operationId" : {
+            "type" : "string"
+          },
+          "operationType" : {
+            "type" : "string"
+          },
+          "originalBeneficiaryAccountNumber" : {
+            "type" : "string"
+          },
+          "originalBeneficiaryName" : {
+            "type" : "string"
+          },
+          "originalConfirmedOn" : {
+            "pattern" : "yyyy-MM-dd'T'HH:mm:ss.SSS",
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "originalPaymentDetails" : {
+            "type" : "string"
+          },
+          "otherAmount" : {
+            "type" : "string"
+          },
+          "otherCurrency" : {
+            "type" : "string"
+          },
+          "pan" : {
+            "type" : "string"
+          },
+          "payerAccountNumber" : {
+            "type" : "string"
+          },
+          "payerBank" : {
+            "type" : "string"
+          },
+          "payerName" : {
+            "type" : "string"
+          },
+          "payerPhoneNumber" : {
+            "type" : "string"
+          },
+          "paymentCode" : {
+            "type" : "string"
+          },
+          "paymentDetails" : {
+            "type" : "string"
+          },
+          "paymentLocation" : {
+            "$ref" : "#/components/schemas/LocationCoordinates"
+          },
+          "posID" : {
+            "type" : "string",
+            "description" : "Point-of-sale identification"
+          },
+          "posOperationID" : {
+            "type" : "string",
+            "description" : "Point-of-sale operation identification"
+          },
+          "productId" : {
+            "type" : "string"
+          },
+          "purchaseAmount" : {
+            "type" : "string",
+            "description" : "Purchase amount"
+          },
+          "reasonCode" : {
+            "type" : "string"
+          },
+          "reasonMessage" : {
+            "type" : "string"
+          },
+          "serviceType" : {
+            "type" : "string",
+            "enum" : [ "INTERNAL_PAYMENT", "BOA_PAYMENT", "INTERNAL_TRANSFER", "OUTGOING_PAYMENT", "OUTGOING_INSTITUTION_PAYMENT", "OUTGOING_PAYMENT_FROM_INTERNAL", "INCOMING_PAYMENT", "MOBILE_PAYMENT_PURCHASE", "ACCOUNT_OPENING", "CONSOLIDATED_CONVERSION_PAYMENT", "INCOMING_PAYMENT_RETURN", "OUTGOING_PAYMENT_RETURN", "INCOMING_INSTITUTION_PAYMENT", "ONBOARDING_PAYMENT", "INTERNAL_PAYMENT_TIPS", "ONBOARDING_PAYMENT_TIPS", "LOAN_AGREEMENT", "DEPOSIT_AGREEMENT", "CURRENT_ACCOUNT_SERVICE_CHARGE", "CURRENT_ACCOUNT_CURRENCY_EXCHANGE", "MARKET_CURRENCY_EXCHANGE", "REEVALUATION", "BALANCE_CLOSURE", "PROFIT_LOSS_RECOGNITION", "CASH_DEPOSIT", "CASH_WITHDRAWAL", "CASH_ACCEPT", "CASH_SEND", "CASH_EXCHANGE", "SERVICE_PAYMENT", "CHANGE_GL_ACCOUNT", "CURRENT_ACCOUNT_DEBT_COVERAGE", "CURRENT_ACCOUNT_DEBT_WRITE_OFF", "CARD_BLOCK", "CARD_ISSUE", "CARD_REPLACEMENT", "CARD_DELIVERY_BY_POST", "CARD_DELIVERY_BY_REGISTERED_POST", "CARD_DELIVERY_BY_COURIER", "CARD_PAYMENT_CREDIT", "CARD_PAYMENT_CREDIT_REVERSAL", "CARD_RENEWAL", "CARD_MAINTENANCE", "CARD_PURCHASE", "CARD_PURCHASE_REVERSAL", "CARD_PURCHASE_WITH_CASHBACK", "CARD_PURCHASE_WITH_CASHBACK_REVERSAL", "CARD_PURCHASE_UNIQUE", "CARD_PURCHASE_UNIQUE_REVERSAL", "CARD_REFUND", "CARD_REFUND_REVERSAL", "CARD_CASH_WITHDRAWAL", "CARD_CASH_WITHDRAWAL_REVERSAL", "CARD_CASH_WITHDRAWAL_POS", "CARD_CASH_WITHDRAWAL_POS_REVERSAL", "CARD_CASH_ADVANCE", "CARD_CASH_ADVANCE_REVERSAL", "CARD_CASH_IN", "CARD_CASH_IN_REVERSAL", "CARD_ADJUSTMENT_CREDIT", "CARD_ADJUSTMENT_CREDIT_REVERSAL", "CARD_ADJUSTMENT_DEBIT", "CARD_ADJUSTMENT_DEBIT_REVERSAL", "CARD_ACCOUNT_FUNDING_TRANSACTION", "CARD_ACCOUNT_FUNDING_TRANSACTION_REVERSAL", "CARD_ACCOUNT_VERIFICATION", "MERCHANT_FLAT_FEE", "MERCHANT_COMMISSIONS", "MERCHANT_PAYMENT_REVERSAL", "MERCHANT_INSTANT_PAYMENT", "MERCHANT_BULK_PAYMENT", "MERCHANT_FEE_REVERSAL", "MERCHANT_REFUND", "PARTY_REGISTRATION", "PARTY_VERIFICATION", "PARTY_DATA_CHANGE", "PARTY_PERIODIC_CHECK", "PARTY_MANUAL_CHECK", "AGREEMENT_ADMINISTRATION", "CONCLUDE_AGREEMENT", "REJECT_AGREEMENT", "CHANGE_AGREEMENT", "LOAN_ACCRUAL", "LOAN_CAPITALIZATION", "LOAN_DISBURSEMENT", "LOAN_REPAYMENT", "LOAN_RECOGNITION", "LOAN_PREPAYMENT", "LOAN_IMPAIRMENT", "LOAN_STORNO", "LOAN_OBLIGATION_END", "LOAN_RESTRUCTURE", "OVERDRAFT_COVERAGE", "DEPOSIT_ROLLOVER", "DEPOSIT", "DEPOSIT_INITIAL_INSTALLMENT", "DEPOSIT_PERIODIC_INSTALLMENT", "DEPOSIT_ADDITIONAL_INSTALLMENT", "DEPOSIT_PARTIAL_WITHDRAWAL", "DEPOSIT_RENEWAL", "DEPOSIT_ACCRUAL", "DEPOSIT_INTEREST_PAYOUT", "DEPOSIT_DISBURSEMENT", "DEPOSIT_TERMINATION", "DEPOSIT_PENDING_INITIAL_TRANSFER", "DEPOSIT_PENDING_PERIODIC_INSTALLMENT", "CURRENT_ACCOUNT_INTEREST_ACCRUAL", "CURRENT_ACCOUNT_INTEREST_PAYOUT", "CURRENT_ACCOUNT_INTEREST_REPAYMENT", "EQUITY_SHARE_ENTRANCE_FEE_FROM_ACCOUNT", "EQUITY_SHARE_ENTRANCE_FEE_IN_CASH", "EQUITY_SHARE_INITIAL_INSTALLMENT_FROM_ACCOUNT", "EQUITY_SHARE_INITIAL_INSTALLMENT_IN_CASH", "EQUITY_SHARE_ADDITIONAL_INSTALLMENT_FROM_ACCOUNT", "EQUITY_SHARE_ADDITIONAL_INSTALLMENT_IN_CASH", "EQUITY_SHARE_PARTIAL_REFUND_TO_ACCOUNT", "EQUITY_SHARE_PARTIAL_REFUND_IN_CASH", "EQUITY_SHARE_REFUND_TO_ACCOUNT", "EQUITY_SHARE_REFUND_FEE_IN_CASH", "EQUITY_SHARE_TRANSFER_TO_ANOTHER_PARTY", "MISTER_TANGO_TOP_UP", "PAYMENT_CARD_TOP_UP", "PAYMENT_CARD_TOP_UP_FROM_PREFUNDING_ACCOUNT", "NEO_PAY_TOP_UP", "PAYMENT_CARD_WITHDRAWAL_TO_PREFUNDING_ACCOUNT", "SUPPLEMENTARY_SERVICE", "STANDALONE_RISK_ASSESSMENT", "MESSAGE_FORWARDING_NOSTRO", "MESSAGE_FORWARDING_VOSTRO", "LIQUIDITY_TRANSFER", "DIRECT_DEBIT_INTERNAL", "DIRECT_DEBIT_OUTGOING", "DIRECT_DEBIT_INCOMING", "DIRECT_DEBIT_INTERNAL_RETURN", "DIRECT_DEBIT_INCOMING_RETURN", "DIRECT_DEBIT_OUTGOING_RETURN", "DIRECT_DEBIT_INCOMING_REVERT", "DIRECT_DEBIT_OUTGOING_REVERT" ]
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "storeAddressCity" : {
+            "type" : "string"
+          },
+          "storeBizType" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "storeLogo" : {
+            "type" : "string"
+          },
+          "storePSPName" : {
+            "type" : "string"
+          },
+          "storeRisk" : {
+            "type" : "integer",
+            "description" : "Store risk",
+            "format" : "int32"
+          },
+          "storeTips" : {
+            "type" : "boolean"
+          },
+          "subscriptionCreditAmount" : {
+            "type" : "string"
+          },
+          "transactionAmount" : {
+            "type" : "string"
+          },
+          "transactionCurrency" : {
+            "type" : "string"
+          },
+          "updatedOn" : {
+            "pattern" : "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "validFrom" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "validTill" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "description" : "Single payment entry information",
+        "example" : "{\n  \"operationId\": \"CARD_PURCHASE:I:51d37afb-d3e3-4f4e-9e4c-a422a0cc8084:DEBIT\",\n  \"operationType\": \"CARD_PURCHASE\",\n  \"initiatorType\": \"NOSTRO_MESSAGE\",\n  \"direction\": \"DEBIT\",\n  \"payerName\": \"Darunas Zavinys\",\n  \"payerAccountNumber\": \"LT343550010000001577\",\n  \"amount\": \"5.01\",\n  \"currency\": \"EUR\",\n  \"status\": \"AUTHORIZED\",\n  \"createdOn\": \"2021-12-09T09:41:25.058Z\",\n  \"feeAmount\": \"0.00\",\n  \"date\": \"2021-12-09T09:41:24.903Z\",\n  \"updatedOn\": \"2021-12-09T09:41:25.058Z\",\n  \"productId\": \"VISA-DEBIT-CARD-SCC\",\n  \"cardProductType\": \"DEBIT\",\n  \"cardPaymentNetwork\": \"VISA\",\n  \"transactionAmount\": \"6.01\",\n  \"transactionCurrency\": \"USD\",\n  \"merchantName\": \"FLYUIA.COM\",\n  \"conversionRate\": \"1.00\",\n  \"exchangeRate\": \"1.0000\",\n  \"merchantCategoryCodeDescription\": \"Airlines, Air Carriers ( not listed elsewhere)\",\n  \"merchantCity\": \"KYIV\",\n  \"merchantCountry\": \"UA\",\n  \"cardHoldId\": \"8267a891-11c5-449c-84eb-ee19d5171081\",\n  \"merchantCategoryCode\": \"6011\",\n  \"pan\": \"****7477\",\n  \"cardId\": \"SPC.CARD-gv6comi\",\n}"
+      },
+      "PaymentStatus" : {
+        "type" : "object",
+        "properties" : {
+          "reasonCode" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "INITIATED", "PROCESSING", "WAITING", "WAITING_EXECUTION", "WAITING_FOR_FUNDS", "VERIFICATION", "SUSPENDED", "REJECTED", "COMPLETED", "FAILED", "REVERSED" ]
+          }
+        }
+      },
+      "RedirectToGipResponse" : {
+        "type" : "object",
+        "properties" : {
+          "authorizationHeader" : {
+            "type" : "string"
+          },
+          "url" : {
+            "type" : "string"
+          }
+        },
+        "example" : {
+          "url" : "https://gip-dev.ncs.lt/gip503/?page=setpassword&card=BNK.CARD-pjkpyjy&lang=en-US&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzZHMtcGFzc3dvcmQiLCJzdWIiOiJCTksuQ0FSRC1wamtweWp5IiwiaXAiOiIxNzAuMTg2LjYxLjI0MiIsImlzcyI6IkJOSyIsImV4cCI6MTYzMDY1MjI0NSwiaWF0IjoxNjMwNjUyMDY1fQ.PcWPNa0N-mSxaHjVhWluZfl0nW_o8S8Dbv5lNEzpGYmIvCJ83VX_GHTJPZhVrqL0zDFG5hCJIrbCEhkwb3dt3-DrHNc_9enM4OwZP9CAcDUm6dw7p2Ba67RGQ_LBz32oFNtG--itp9wtvIoEZENF52B2I_rLq4xGFHPd8axxcuCqmIwFbduPUMY_BhuLBLaKc44Vm25R9nlcnGI7Qwhl-Zkx8ahOOvFNUJ0vy8EKJop_zVKCObjE6sb81iuKc-2n5xtL44KTg_gOF0ZE30WAxLhOZcXFpDFayApgeSLb8J7rMHeHQ7BFE9ncAvVqzT2uUfVlCAuOEn7ab3JdONhQAQ",
+          "authorizationHeader" : "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzZHMtcGFzc3dvcmQiLCJzdWIiOiJCTksuQ0FSRC1wamtweWp5IiwiaXAiOiIxNzAuMTg2LjYxLjI0MiIsImlzcyI6IkJOSyIsImV4cCI6MTYzMDY1MjI0NSwiaWF0IjoxNjMwNjUyMDY1fQ.PcWPNa0N-mSxaHjVhWluZfl0nW_o8S8Dbv5lNEzpGYmIvCJ83VX_GHTJPZhVrqL0zDFG5hCJIrbCEhkwb3dt3-DrHNc_9enM4OwZP9CAcDUm6dw7p2Ba67RGQ_LBz32oFNtG--itp9wtvIoEZENF52B2I_rLq4xGFHPd8axxcuCqmIwFbduPUMY_BhuLBLaKc44Vm25R9nlcnGI7Qwhl-Zkx8ahOOvFNUJ0vy8EKJop_zVKCObjE6sb81iuKc-2n5xtL44KTg_gOF0ZE30WAxLhOZcXFpDFayApgeSLb8J7rMHeHQ7BFE9ncAvVqzT2uUfVlCAuOEn7ab3JdONhQAQ"
+        }
+      },
+      "RegistrationOneStepSignupAddress" : {
+        "required" : [ "city", "country", "postalCode", "street" ],
+        "type" : "object",
+        "properties" : {
+          "apartmentNumber" : {
+            "maxLength" : 50,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "buildingNumber" : {
+            "maxLength" : 50,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "city" : {
+            "maxLength" : 100,
+            "minLength" : 1,
+            "type" : "string",
+            "description" : "settlement = city"
+          },
+          "country" : {
+            "maxLength" : 2,
+            "minLength" : 2,
+            "type" : "string"
+          },
+          "municipality" : {
+            "maxLength" : 100,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "postalCode" : {
+            "maxLength" : 10,
+            "minLength" : 1,
+            "type" : "string"
+          },
+          "street" : {
+            "maxLength" : 100,
+            "minLength" : 1,
+            "type" : "string"
+          }
+        }
+      },
+      "RegistrationOneStepSignupAddresses" : {
+        "required" : [ "residentialAddress", "useResidentialForCorrespondence" ],
+        "type" : "object",
+        "properties" : {
+          "correspondenceAddress" : {
+            "$ref" : "#/components/schemas/RegistrationOneStepSignupAddress"
+          },
+          "residentialAddress" : {
+            "$ref" : "#/components/schemas/RegistrationOneStepSignupAddress"
+          },
+          "useResidentialForCorrespondence" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "RegistrationOneStepSignupBasicInfo" : {
+        "required" : [ "firstName", "lastName", "politicallyExposed" ],
+        "type" : "object",
+        "properties" : {
+          "additionalCitizenships" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "birthCountry" : {
+            "maxLength" : 2,
+            "minLength" : 2,
+            "type" : "string",
+            "description" : "Parameter is mandatory or optional depending on the fieldSettings."
+          },
+          "birthdate" : {
+            "type" : "string",
+            "description" : "Parameter is mandatory or optional depending on the fieldSettings.",
+            "format" : "date"
+          },
+          "citizenship" : {
+            "maxLength" : 2,
+            "minLength" : 2,
+            "type" : "string",
+            "description" : "Parameter is mandatory or optional depending on the fieldSettings."
+          },
+          "communicationLanguage" : {
+            "maxLength" : 2,
+            "minLength" : 2,
+            "type" : "string"
+          },
+          "firstName" : {
+            "maxLength" : 125,
+            "minLength" : 2,
+            "type" : "string"
+          },
+          "lastName" : {
+            "maxLength" : 125,
+            "minLength" : 2,
+            "type" : "string"
+          },
+          "personalCode" : {
+            "maxLength" : 30,
+            "minLength" : 0,
+            "type" : "string",
+            "description" : "For [LT] citizenship, field is always mandatory, for other countries', field is mandatory or optional depending on the fieldSettings."
+          },
+          "politicallyExposed" : {
+            "type" : "boolean"
+          },
+          "politicallyExposedPosition" : {
+            "maxLength" : 150,
+            "minLength" : 2,
+            "type" : "string"
+          },
+          "taxCountries" : {
+            "type" : "array",
+            "description" : "Parameter is mandatory or optional depending on the fieldSettings.",
+            "items" : {
+              "$ref" : "#/components/schemas/TaxCountry"
+            }
+          }
+        }
+      },
+      "RegistrationOneStepSignupContacts" : {
+        "required" : [ "email", "mobilePhone" ],
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "maxLength" : 254,
+            "minLength" : 0,
+            "type" : "string"
+          },
+          "mobilePhone" : {
+            "maxLength" : 20,
+            "minLength" : 5,
+            "type" : "string"
+          }
+        }
+      },
+      "RegistrationOneStepSignupIdentityDocument" : {
+        "required" : [ "expiryDate", "issueDate", "issuingCountry", "number", "type" ],
+        "type" : "object",
+        "properties" : {
+          "expiryDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "issueDate" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "issuingCountry" : {
+            "maxLength" : 2,
+            "minLength" : 2,
+            "type" : "string"
+          },
+          "number" : {
+            "maxLength" : 30,
+            "minLength" : 2,
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "description" : "",
+            "enum" : [ "PASSPORT", "ID_CARD", "RESIDENCE_PERMIT" ]
+          }
+        }
+      },
+      "RegistrationOneStepSignupRequest" : {
+        "required" : [ "address", "basicInfo", "contacts", "identityDocument" ],
+        "type" : "object",
+        "properties" : {
+          "address" : {
+            "$ref" : "#/components/schemas/RegistrationOneStepSignupAddresses"
+          },
+          "basicInfo" : {
+            "$ref" : "#/components/schemas/RegistrationOneStepSignupBasicInfo"
+          },
+          "contacts" : {
+            "$ref" : "#/components/schemas/RegistrationOneStepSignupContacts"
+          },
+          "identityDocument" : {
+            "$ref" : "#/components/schemas/RegistrationOneStepSignupIdentityDocument"
+          }
+        }
+      },
+      "RegistrationOneStepSignupResponse" : {
+        "type" : "object",
+        "properties" : {
+          "activityStatus" : {
+            "type" : "string",
+            "enum" : [ "SUSPENDED", "ACTIVE", "BLOCKED", "REMOVED" ]
+          },
+          "ibContractId" : {
+            "type" : "string"
+          },
+          "ibUserId" : {
+            "type" : "string"
+          },
+          "partyId" : {
+            "type" : "string"
+          }
+        },
+        "description" : "",
+        "example" : "{\n   \"partyId\": \"d601a07c-5354-4b58-a4ce-c9998f6798a6\",\n   \"activityStatus\": \"ACTIVE\"\n  }"
+      },
+      "ResponseMetadata" : {
+        "type" : "object",
+        "properties" : {
+          "correlationId" : {
+            "type" : "string",
+            "description" : "UUID that is generated while accepting request and passed down through all the system and returned in response."
+          },
+          "hasErrorMessage" : {
+            "type" : "boolean",
+            "description" : "Indicator if there are messages with error level"
+          },
+          "messages" : {
+            "type" : "array",
+            "description" : "Array of message object",
+            "items" : {
+              "$ref" : "#/components/schemas/MetadataMessage"
+            }
+          },
+          "responseId" : {
+            "type" : "string",
+            "description" : "UUID that is generated in the system and is unique for each response"
+          }
+        },
+        "description" : "Main object containing all response metadata information"
+      },
+      "SecurityParameterPreconditionsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "preconditions" : {
+            "uniqueItems" : true,
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "SET_3DS_PASSWORD" ]
+            }
+          }
+        },
+        "example" : {
+          "preconditions" : [ "SET_3DS_PASSWORD" ]
+        }
+      },
+      "SecurityParameterRequest" : {
+        "required" : [ "securityParameter", "securityParameterStatus" ],
+        "type" : "object",
+        "properties" : {
+          "securityParameter" : {
+            "type" : "string",
+            "enum" : [ "ALLOW_CONTACTLESS", "ALLOW_CASHOUT", "ALLOW_ECOMMERCE", "ALLOW_MAG_STRIPE" ]
+          },
+          "securityParameterStatus" : {
+            "type" : "boolean"
+          }
+        },
+        "example" : {
+          "securityParameter" : "ALLOW_CONTACTLESS",
+          "securityParameterStatus" : "true"
+        }
+      },
+      "SecurityParametersResponse" : {
+        "type" : "object",
+        "properties" : {
+          "allowCashout" : {
+            "type" : "boolean"
+          },
+          "allowContactless" : {
+            "type" : "boolean"
+          },
+          "allowEcommerce" : {
+            "type" : "boolean"
+          },
+          "allowMagStripe" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "TaxCountry" : {
+        "required" : [ "taxCountry", "taxIdentificationNumber" ],
+        "type" : "object",
+        "properties" : {
+          "taxCountry" : {
+            "maxLength" : 2,
+            "minLength" : 2,
+            "type" : "string"
+          },
+          "taxIdentificationNumber" : {
+            "maxLength" : 40,
+            "minLength" : 0,
+            "type" : "string"
+          }
+        },
+        "description" : "Parameter is mandatory or optional depending on the fieldSettings."
+      },
+      "TokenDetails" : {
+        "type" : "object",
+        "properties" : {
+          "attempts" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "maxAttempts" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "tokenSecondsLeft" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "example" : {
+          "maxAttempts" : 5,
+          "attempts" : 3,
+          "tokenSecondsLeft" : 180
+        }
+      },
+      "VerifyConfirmationRequest" : {
+        "type" : "object",
+        "properties" : {
+          "password" : {
+            "maxLength" : 10,
+            "minLength" : 0,
+            "type" : "string",
+            "description" : "OTP code (from SMS)"
+          },
+          "userIp" : {
+            "type" : "string",
+            "description" : "User ip address"
+          }
+        },
+        "example" : {
+          "password" : "123456",
+          "userIp" : "170.186.61.242"
+        }
+      }
+    },
+    "securitySchemes" : {
+      "cookie" : {
+        "type" : "apiKey",
+        "name" : "SSID",
+        "in" : "cookie"
+      },
+      "basic" : {
+        "type" : "http",
+        "scheme" : "basic"
+      },
+      "oAuth2" : {
+        "type" : "oauth2",
+        "flows" : {
+          "password" : {
+            "tokenUrl" : "/rest/oauth/token"
+          },
+          "clientCredentials" : {
+            "tokenUrl" : "/rest/oauth/token"
+          }
+        }
+      }
+    }
+  }
+}
